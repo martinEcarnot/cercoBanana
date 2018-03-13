@@ -5,8 +5,8 @@
 #' @return matrix
 #' @author Martin Ecarnot
 #' @export
-#' 
-source('D:\\Intern 2018\\Dinh\\scripts R\\asd_read.R')
+#'
+source('D:\\Intern 2018\\cercoBanana\\R\\asd_read.R')
 
 
 SIGNE_load <- function (d) {
@@ -15,7 +15,7 @@ library(asdreader)
 l=Sys.glob(file.path(d, "*.asd"))
 l=sort(l)
 
-sp=matrix(nrow=length(l),ncol=2151)	
+sp=matrix(nrow=length(l),ncol=2151)
 
 for (i in 1:length(l)) {
   print(i)
@@ -38,13 +38,13 @@ row.names(sp)=l1
 
 # Create class file
 # clas=substr(l1,1,3)
-# 
+#
 # uclas=unique(clas)
 # for (i in 1:length(uclas)) {
 #   iok=which(clas==uclas[i])
 #   clas[iok]=i
 # }
-# 
+#
 # clas=data.frame(clas)
 # row.names(clas)=l1
 # colnames(clas)="clone"
