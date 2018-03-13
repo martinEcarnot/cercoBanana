@@ -6,7 +6,8 @@
 #' @author Martin Ecarnot
 #' @export
 #' 
-source('~/Documents/INRA/R/asd_read.R')
+source('D:\\Intern 2018\\Dinh\\scripts R\\asd_read.R')
+
 
 SIGNE_load <- function (d) {
 library(asdreader)
@@ -15,19 +16,19 @@ l=Sys.glob(file.path(d, "*.asd"))
 l=sort(l)
 
 sp=matrix(nrow=length(l),ncol=2151)	
-spt=list()
 
 for (i in 1:length(l)) {
-  # sp1=get_spectra(l[i], type = "reflectance") # Fonction pour lire les fichiers .asd
-  sp1=asd_read(l[i])
-  sp1=sp1$spectrum/sp1$reference
+  print(i)
+  sp1=get_spectra(l[i], type = "reflectance") # Fonction pour lire les fichiers .asd
+  # sp1=asd_read(l[i])
+  # sp1=sp1$spectrum/sp1$reference
   sp[i,]=sp1
 }
 
 
 l1=basename(l)
 l1=gsub(".asd","",l1)
-l1=gsub("000","-",l1)
+# l1=gsub("000","-",l1)
 # Look for wavelength
 md=get_metadata(l[i])
 wl=seq(from=md$ch1_wavel, to=md$ch1_wavel+md$channels-1)
