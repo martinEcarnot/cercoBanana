@@ -49,6 +49,8 @@ if (substr(basename(d),9,18)=="2017 07 18") {iout=which(rpca$x < -0.02)}
 
 resok=resok[-iout,]
 geno=geno[-iout]
+idtotok=idtotok[-iout]
+
 rpca=prcomp(resok)
 
 vectorgeno = as.factor(geno)

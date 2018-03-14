@@ -4,7 +4,8 @@ library(MASS)
 library(signal)
 library(plyr)
 library(caret)
-
+library(ggplot2)
+library(lattice)
 # rm(list = ls())
 
 source('D:\\Intern 2018\\cercoBanana\\R\\adj_asd.R')
