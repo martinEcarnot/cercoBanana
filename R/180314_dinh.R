@@ -4,39 +4,86 @@ library(MASS)
 library(signal)
 library(plyr)
 library(caret)
+library(ggplot2)
+library(lattice)
+# rm(list = ls())
 
 source('D:\\Intern 2018\\cercoBanana\\R\\adj_asd.R')
 source('D:\\Intern 2018\\cercoBanana\\R\\SIGNE_load.R')
 source('D:\\Intern 2018\\cercoBanana\\R\\SIGNE_maha.R')
 source('D:\\Intern 2018\\cercoBanana\\R\\SIGNE_maha0.R')
 
+
+# Choix de la fixation du tirage aleatoire (pour comparaison, rend les r?p?titions inutiles)
+# set.seed(1)
+#
+# brb="~/Documents/INRA/Projets/SIGNE/2017/globalmatrix"
+# load(file=brb)
+#
+# # Data Filter
+# # Select dates
+# dates=list(
+#   "0524P"
+#   ,"0529P"
+#   ,"0606P"
+#   # ,"0612P"
+#   # ,"0619P"
+#   # ,"0626P"
+#   # "0703P"
+#   # ,"0710P"
+#   # ,"0717P"
+#   # ,"0724P"
+#   # ,"0731P"
+#   # ,"0529S"
+#   # ,"0606S"
+#   # ,"0612S"
+#   # ,"0619S"
+#   # ,"0626S"
+#   # ,"0703S"
+#   # ,"0710S"
+#   # ,"0717S"
+#   # ,"0724S"
+#   # ,"0731S"
+# )
+# iok=substr(rownames(res0)%in% dates  ## To keep only the date(s) you want
+# res0=res0[iok,]
+#
+# titre=rownames(res0)
+# ## decommenter pour retirer les jeunes feuilles:
+# w=as.numeric(substr(titre,11,12))==4 | as.numeric(substr(titre,11,12))==5 | as.numeric(substr(titre,11,12))==6 | as.numeric(substr(titre,11,12))==10 | as.numeric(substr(titre,11,12))==11 | as.numeric(substr(titre,11,12))==12 | as.numeric(substr(titre,11,12))==16 | as.numeric(substr(titre,11,12))==17 | as.numeric(substr(titre,11,12))==18
+# # ## decommenter pour retirer les vieilles feuilles:
+# # # w=as.numeric(substr(titre,5,6))==1 | as.numeric(substr(titre,5,6))==2 | as.numeric(substr(titre,5,6))==3 | as.numeric(substr(titre,5,6))==7 | as.numeric(substr(titre,5,6))==8 | as.numeric(substr(titre,5,6))==9 | as.numeric(substr(titre,5,6))==13 | as.numeric(substr(titre,5,6))==14 | as.numeric(substr(titre,5,6))==15
+# # ## retire les lignes correspondantes (a mettre en commentaire si pas de selection de feuilles ou cepages)
+# globalmatrix=globalmatrix[(complete.cases(w==TRUE)),]
+# titre=rownames(globalmatrix)
+# ## decommenter pour retirer la syrah:
+# z=as.numeric(substr(titre,1,3))==471 | as.numeric(substr(titre,1,3))==525 | as.numeric(substr(titre,1,3))==747 | as.numeric(substr(titre,1,3))==877
+## decommenter pour retirer le cabernet sauvignon:
+# z=as.numeric(substr(titre,1,3))==015 | as.numeric(substr(titre,1,3))==169 | as.numeric(substr(titre,1,3))==685
+## decommenter pour retirer le gamay:
+# z=as.numeric(substr(titre,1,3))==787 | as.numeric(substr(titre,1,3))==509 | as.numeric(substr(titre,1,3))==222
+## retire les lignes correspondantes (a mettre en commentaire si pas de selection de feuilles ou cepages)
+# globalmatrix=globalmatrix[(z==FALSE),]
 id=read.table("D:\\Intern 2018\\Dinh\\Classeur fs5.csv",sep=",",header =TRUE)
 
-d='D:\\Intern 2018\\Dinh\\biov tous asd\\biov1 fs5 asd\\fs5 asd 2017 06 09 rge'
+d="D:\\Intern 2018\\Dinh\\biov tous asd\\biov1 fs5 asd\\fs5 asd 2017 07 18"
 res0=SIGNE_load(d)
 
-
-
-
+## Pretraitements
 # # Ajustement des sauts de detecteurs (Montpellier: sauts ?? 1000 (651??me l.o.) et 1800 (1451))
 res=adj_asd(res0,c(651,1451))
 # # Reduction des variables (extremites bruitees)
 res=res[,seq(100,2100,1)]
 # Normalisation SNV
 res=t(scale(t(res)))
-
-# nombre de repetitions de la boucle de FDA:
-repet=4
-
 # # Derivation Savitsky Golay
 #Parametres du Savitsky-Golay (p=degr? du polynome, n= taille de la fen?tre, m=ordre de d?rivation)
 p=2
 n=11
 m=2
 res=t(apply(res,1,sgolayfilt,p=p,n=n,m=m))
-ncmax=20
-# Nombre de groupes de CV
-k=6
+
+
 
 nboit=rownames(res)
 idtot=vector()
@@ -53,6 +100,21 @@ iok = which(substr(idtot,17,19) == "T2." |substr(idtot,17,19) == "T3."|substr(id
 
 resok=res[iok,]
 idtotok=idtot[iok]
+sp=resok
+ns=nrow(sp)
+
+## Boucle pour effectuer plusieurs PLSDA (reduire impact tirage aleatoire)
+## FIXATION DES PARAMETRES UTILISES:
+# nombre de repetitions de la boucle de FDA:
+repet=4
+#Parametres du Savitsky-Golay (p=degr? du polynome, n= taille de la fen?tre, m=ordre de d?rivation)
+p=2
+n=11
+m=2
+# nombre de DV max autoisees
+ncmax=20
+# Nombre de groupes de CV
+k=6
 
 # creation de la matrice de classes
 class=as.factor(substr(idtotok,17,19))
@@ -60,9 +122,6 @@ class=as.factor(substr(idtotok,17,19))
 c=length(levels(class))
 
 
-
-
-## Boucle pour effectuer plusieurs PLSDA (reduire impact tirage aleatoire)
 
 # initialisation vecteur de % de bons classments par DV
 perok=vector(mode='numeric',length=ncmax)
@@ -132,42 +191,67 @@ for(j in 1:repet) {
   # # Poucentage de bien classes
   # perok=100*unlist(lapply(diags, FUN = sum))/length(class)
 
-  #maxi=max(perokm0)
-  #maxi.id=which.max(perokm0)
+  maxi=max(perokm0)
+  maxi.id=which.max(perokm0)
 
   ## Enregistrement des matrices de resultat final
   # remplissage de la matrice des perok finale
 
-  #perok_finalm0[j,]=perokm0
+  perok_finalm0[j,]=perokm0
 
   # remplissage de la dv max et de son % de bon classements globaux
-  #maxi_final[j,1]=maxi.id
-  #maxi_final[j,2]=maxi
+  maxi_final[j,1]=maxi.id
+  maxi_final[j,2]=maxi
   # remplissage de la matrice de mauvais classements par clone
   # mc_final[j,]=mc[maxi.id,]
   # t_final[,,j]=ts
 }
 
 # affichage matrices de resultat final
-#cat("RESULTATS FINAUX SUR", repet, "TIRAGES", "\n")
-
+cat("RESULTATS FINAUX SUR", repet, "TIRAGES", "\n")
+# print("Ensemble des tables de contingence:")
+# print(t_final)
+# print("Mauvais classements par clone:")
+# print(mc_final)
+# print("moyenne de mauvais classements par clone:")
+# mc_final=mc_final[complete.cases(mc_final),]
+# print(colMeans(mc_final))
+# print(perok_final)
+# print("Nombre de DV au max et maximum de bon classements:")
+# print("Pourcentages d'erreur:")
+# print(maxi_final)
 # # Tracage des spectres
 # # matplot(t(sp),pch='.')
 # # Tracage de l'evolution des perok en fct du nb de DV utilisees
-#plot(colMeans(perok_finalm0))
+plot(colMeans(perok_finalm0))
 
 # # # Tracage des moyennes de mauvais classements par clone
 # # plot(colMeans(mc_final))
-#print("Moyenne de DV max et de perok:")
-#print(colMeans(maxi_final))
+print("Moyenne de DV max et de perok:")
+print(colMeans(maxi_final))
 
-#mc_final[!rowSums(!is.finite(mc_final)),]
-#mc_final[!is.finite(mc_final)] <- 0
+mc_final[!rowSums(!is.finite(mc_final)),]
+mc_final[!is.finite(mc_final)] <- 0
 
-#mc_cep=vector(mode="logical", length = 3)
-#mc_cep[1]=mean(colMeans(mc_final)[1],colMeans(mc_final)[2],colMeans(mc_final)[7])
-#mc_cep[2]=mean(colMeans(mc_final)[3],colMeans(mc_final)[5],colMeans(mc_final)[9])
-#mc_cep[3]=mean(colMeans(mc_final)[4],colMeans(mc_final)[6],colMeans(mc_final)[8],colMeans(mc_final)[10])
-#names(mc_cep)=c("cabernet sauv","gamay","syrah")
+mc_cep=vector(mode="logical", length = 3)
+mc_cep[1]=mean(colMeans(mc_final)[1],colMeans(mc_final)[2],colMeans(mc_final)[7])
+mc_cep[2]=mean(colMeans(mc_final)[3],colMeans(mc_final)[5],colMeans(mc_final)[9])
+mc_cep[3]=mean(colMeans(mc_final)[4],colMeans(mc_final)[6],colMeans(mc_final)[8],colMeans(mc_final)[10])
+names(mc_cep)=c("cabernet sauv","gamay","syrah")
 # print("pourcentage d'erreur moyenne de classement des clones par c?page:")
 # print(mc_cep)
+############ END ############
+
+## Global model
+rplsdag=caret::plsda(sp, class,ncomp=ncmax)
+scg=rplsdag$scores
+
+## PLot
+# plot(sc_cal[,1],sc_cal[,2], col=class_cal,pch=substr(rownames(sp_cal),3,3))
+# plot(sc_cal[,1],sc_cal[,2], pch='')
+# plot(sc_cal[,1],sc_cal[,2], col=dat_cal)
+# text(sc_val[,1],sc_val[,2], labels=substr(rownames(sp_val),11,12), col = "red")
+# plot(sc_cal[,1],sc_cal[,2], col=as.factor(v))
+
+# plot(scg[,1],scg[,2], col=class)
+# points(sc2[,1],sc2[,2],pch=3)
