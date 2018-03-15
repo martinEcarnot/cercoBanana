@@ -64,7 +64,46 @@ source('D:\\Intern 2018\\cercoBanana\\R\\SIGNE_maha0.R')
 # z=as.numeric(substr(titre,1,3))==787 | as.numeric(substr(titre,1,3))==509 | as.numeric(substr(titre,1,3))==222
 ## retire les lignes correspondantes (a mettre en commentaire si pas de selection de feuilles ou cepages)
 # globalmatrix=globalmatrix[(z==FALSE),]
+id=read.table("D:\\Intern 2018\\Dinh\\Classeur fs5.csv",sep=",",header =TRUE)
 
+d="D:\\Intern 2018\\Dinh\\biov tous asd\\biov1 fs5 asd\\fs5 asd 2017 06 09 rge"
+res0=SIGNE_load(d)
+
+## Pretraitements
+# # Ajustement des sauts de detecteurs (Montpellier: sauts ?? 1000 (651??me l.o.) et 1800 (1451))
+res=adj_asd(res0,c(651,1451))
+# # Reduction des variables (extremites bruitees)
+res=res[,seq(100,2100,1)]
+# Normalisation SNV
+res=t(scale(t(res)))
+# # Derivation Savitsky Golay
+#Parametres du Savitsky-Golay (p=degr? du polynome, n= taille de la fen?tre, m=ordre de d?rivation)
+p=2
+n=11
+m=2
+res=t(apply(res,1,sgolayfilt,p=p,n=n,m=m))
+
+
+
+nboit=rownames(res)
+idtot=vector()
+
+for (i in 1:nrow(res))  {
+  b=substr(nboit[i],1,nchar(nboit[i])-5)
+  ib=which(b==id$Pastille.boite)
+
+  id1=sprintf("%s_%9s_%s",substr(basename(d),9,18),id$Variete[ib],id$Boite.ds.var[ib])
+  idtot=rbind(idtot,id1)
+}
+
+iok = which(substr(idtot,17,19) == "T2." |substr(idtot,17,19) == "T3."|substr(idtot,17,19) == "T4."|substr(idtot,17,19) == "T5."|substr(idtot,17,19) == "T6."|substr(idtot,17,19) == "T7."|substr(idtot,17,19) == "T8."|substr(idtot,17,19) == "T9.")
+
+resok=res[iok,]
+idtotok=idtot[iok]
+sp=resok
+ns=nrow(sp)
+
+## Boucle pour effectuer plusieurs PLSDA (reduire impact tirage aleatoire)
 ## FIXATION DES PARAMETRES UTILISES:
 # nombre de repetitions de la boucle de FDA:
 repet=4
@@ -74,31 +113,15 @@ n=11
 m=2
 # nombre de DV max autoisees
 ncmax=20
-
-#Taille de l'echantillon de validation (1/v):
-# v=3
 # Nombre de groupes de CV
 k=6
-
-sp=resok
-ns=nrow(sp)
 
 # creation de la matrice de classes
 class=as.factor(substr(idtotok,17,19))
 # variable qui mesure le nombre de classes
 c=length(levels(class))
 
-## Pretraitements
-# # Ajustement des sauts de detecteurs (Montpellier: sauts ?? 1000 (651??me l.o.) et 1800 (1451))
-# sp=adj_asd(sp,c(651,1451))
-# # # Reduction des variables (extremites bruitees)
-# sp=sp[,seq(100,2100,1)]
-# # # SNV
-# sp=t(scale(t(sp)))
-# # # Derivation Savitsky Golay
-# sp=t(apply(sp,1,sgolayfilt,p=p,n=n,m=m))
 
-## Boucle pour effectuer plusieurs PLSDA (reduire impact tirage aleatoire)
 
 # initialisation vecteur de % de bons classments par DV
 perok=vector(mode='numeric',length=ncmax)
