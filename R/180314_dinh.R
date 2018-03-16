@@ -14,56 +14,13 @@ source('D:\\Intern 2018\\cercoBanana\\R\\SIGNE_maha.R')
 source('D:\\Intern 2018\\cercoBanana\\R\\SIGNE_maha0.R')
 
 
-# Choix de la fixation du tirage aleatoire (pour comparaison, rend les r?p?titions inutiles)
-# set.seed(1)
-#
-# brb="~/Documents/INRA/Projets/SIGNE/2017/globalmatrix"
-# load(file=brb)
-#
+
 # # Data Filter
 # # Select dates
-# dates=list(
-#   "0524P"
-#   ,"0529P"
-#   ,"0606P"
-#   # ,"0612P"
-#   # ,"0619P"
-#   # ,"0626P"
-#   # "0703P"
-#   # ,"0710P"
-#   # ,"0717P"
-#   # ,"0724P"
-#   # ,"0731P"
-#   # ,"0529S"
-#   # ,"0606S"
-#   # ,"0612S"
-#   # ,"0619S"
-#   # ,"0626S"
-#   # ,"0703S"
-#   # ,"0710S"
-#   # ,"0717S"
-#   # ,"0724S"
-#   # ,"0731S"
-# )
+# dates=list("0524P")
 # iok=substr(rownames(res0)%in% dates  ## To keep only the date(s) you want
 # res0=res0[iok,]
-#
-# titre=rownames(res0)
-# ## decommenter pour retirer les jeunes feuilles:
-# w=as.numeric(substr(titre,11,12))==4 | as.numeric(substr(titre,11,12))==5 | as.numeric(substr(titre,11,12))==6 | as.numeric(substr(titre,11,12))==10 | as.numeric(substr(titre,11,12))==11 | as.numeric(substr(titre,11,12))==12 | as.numeric(substr(titre,11,12))==16 | as.numeric(substr(titre,11,12))==17 | as.numeric(substr(titre,11,12))==18
-# # ## decommenter pour retirer les vieilles feuilles:
-# # # w=as.numeric(substr(titre,5,6))==1 | as.numeric(substr(titre,5,6))==2 | as.numeric(substr(titre,5,6))==3 | as.numeric(substr(titre,5,6))==7 | as.numeric(substr(titre,5,6))==8 | as.numeric(substr(titre,5,6))==9 | as.numeric(substr(titre,5,6))==13 | as.numeric(substr(titre,5,6))==14 | as.numeric(substr(titre,5,6))==15
-# # ## retire les lignes correspondantes (a mettre en commentaire si pas de selection de feuilles ou cepages)
-# globalmatrix=globalmatrix[(complete.cases(w==TRUE)),]
-# titre=rownames(globalmatrix)
-# ## decommenter pour retirer la syrah:
-# z=as.numeric(substr(titre,1,3))==471 | as.numeric(substr(titre,1,3))==525 | as.numeric(substr(titre,1,3))==747 | as.numeric(substr(titre,1,3))==877
-## decommenter pour retirer le cabernet sauvignon:
-# z=as.numeric(substr(titre,1,3))==015 | as.numeric(substr(titre,1,3))==169 | as.numeric(substr(titre,1,3))==685
-## decommenter pour retirer le gamay:
-# z=as.numeric(substr(titre,1,3))==787 | as.numeric(substr(titre,1,3))==509 | as.numeric(substr(titre,1,3))==222
-## retire les lignes correspondantes (a mettre en commentaire si pas de selection de feuilles ou cepages)
-# globalmatrix=globalmatrix[(z==FALSE),]
+
 id=read.table("D:\\Intern 2018\\Dinh\\Classeur fs5.csv",sep=",",header =TRUE)
 
 d="D:\\Intern 2018\\Dinh\\biov tous asd\\biov1 fs5 asd\\fs5 asd 2017 07 18"
@@ -82,7 +39,6 @@ p=2
 n=11
 m=2
 res=t(apply(res,1,sgolayfilt,p=p,n=n,m=m))
-
 
 
 nboit=rownames(res)
@@ -105,19 +61,19 @@ ns=nrow(sp)
 
 ## Boucle pour effectuer plusieurs PLSDA (reduire impact tirage aleatoire)
 ## FIXATION DES PARAMETRES UTILISES:
-# nombre de repetitions de la boucle de FDA:
+# nombre de repetitions de la boucle de FDA:(purpose of ADF test?)
 repet=4
 #Parametres du Savitsky-Golay (p=degr? du polynome, n= taille de la fen?tre, m=ordre de d?rivation)
 p=2
 n=11
 m=2
-# nombre de DV max autoisees
+# nombre de DV max autoisees (what's this?)
 ncmax=20
-# Nombre de groupes de CV
+# Nombre de groupes de CV (if chose randomly a number higher or lowwer than that, what's happens? ) )
 k=6
 
 # creation de la matrice de classes
-class=as.factor(substr(idtotok,17,19))
+class=vectoriso #as.factor(substr(idtotok,17,19))
 # variable qui mesure le nombre de classes
 c=length(levels(class))
 
@@ -125,7 +81,7 @@ c=length(levels(class))
 
 # initialisation vecteur de % de bons classments par DV
 perok=vector(mode='numeric',length=ncmax)
-# creation matrice de % de mauvais classements par clone
+# creation matrice de % de mauvais classements par clone (the purpose?)
 mc=matrix(nrow = ncmax,ncol = c)
 
 ## definition des matrices de resultat final
