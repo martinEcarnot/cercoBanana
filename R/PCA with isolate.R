@@ -45,11 +45,11 @@ rpca=prcomp(resok)
 #iout=[]
 #if (substr(basename(d),9,18)=="2017 06 21") {iout=which(rpca$x > 0.05)}
 #if (substr(basename(d),9,18)=="2017 07 06") {iout=which(rpca$x > 0.2)}
-if (substr(basename(d),9,18)=="2017 07 18") {iout=which(rpca$x < -0.02)}
+#if (substr(basename(d),9,18)=="2017 07 18") {iout=which(rpca$x < -0.02)}
 
-resok=resok[-iout,]
-iso=iso[-iout]
-idtotok=idtotok[-iout]
+#resok=resok[-iout,]
+#iso=iso[-iout]
+#idtotok=idtotok[-iout]
 
 rpca=prcomp(resok)
 

@@ -33,13 +33,6 @@ res=adj_asd(res0,c(651,1451))
 res=res[,seq(100,2100,1)]
 # Normalisation SNV
 res=t(scale(t(res)))
-# # Derivation Savitsky Golay
-#Parametres du Savitsky-Golay (p=degr? du polynome, n= taille de la fen?tre, m=ordre de d?rivation)
-p=2
-n=11
-m=2
-res=t(apply(res,1,sgolayfilt,p=p,n=n,m=m))
-
 
 nboit=rownames(res)
 idtot=vector()
@@ -59,21 +52,27 @@ idtotok=idtot[iok]
 sp=resok
 ns=nrow(sp)
 
+resok=res[iok,]
+idtotok=idtot[iok]
+
 ## Boucle pour effectuer plusieurs PLSDA (reduire impact tirage aleatoire)
 ## FIXATION DES PARAMETRES UTILISES:
-# nombre de repetitions de la boucle de FDA:(purpose of ADF test?)
 repet=4
+# nombre de DV max autoisees (what's this?)
+ncmax=20
+# # Derivation Savitsky Golay
 #Parametres du Savitsky-Golay (p=degr? du polynome, n= taille de la fen?tre, m=ordre de d?rivation)
 p=2
 n=11
 m=2
-# nombre de DV max autoisees (what's this?)
-ncmax=20
-# Nombre de groupes de CV (if chose randomly a number higher or lowwer than that, what's happens? ) )
+res=t(apply(res,1,sgolayfilt,p=p,n=n,m=m))
+# Nombre de groupes de CV (if choosing random a number higher or lowwer than that, what's happens? ) )
 k=6
 
 # creation de la matrice de classes
-class=vectoriso #as.factor(substr(idtotok,17,19))
+iso= substr(idtotok, 23, 24)
+vectoriso = as.factor(iso)
+class=vectoriso
 # variable qui mesure le nombre de classes
 c=length(levels(class))
 
@@ -211,3 +210,4 @@ scg=rplsdag$scores
 
 # plot(scg[,1],scg[,2], col=class)
 # points(sc2[,1],sc2[,2],pch=3)
+
