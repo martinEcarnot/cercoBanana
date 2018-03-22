@@ -34,10 +34,14 @@ for (i in 1:nrow(res))  {
   idtot=rbind(idtot,id1)
 }
 
+
+
 iok = which(substr(idtot,17,19) == "T2." |substr(idtot,17,19) == "T3."|substr(idtot,17,19) == "T4."|substr(idtot,17,19) == "T5."|substr(idtot,17,19) == "T6."|substr(idtot,17,19) == "T7."|substr(idtot,17,19) == "T8."|substr(idtot,17,19) == "T9.")
 
 resok=res[iok,]
 idtotok=idtot[iok]
+
+
 
 geno=substr(idtotok,17,19)
 rpca=prcomp(resok)
@@ -51,6 +55,12 @@ resok=resok[-iout,]
 geno=geno[-iout]
 idtotok=idtotok[-iout]
 
+# To do the average of the 3 spectra
+resok=aggregate(resok,list(idtotok),mean)
+idtotok=resok$Group.1
+resok=as.matrix(resok[,2:ncol(resok)])
+geno=substr(idtotok,17,19)
+
 rpca=prcomp(resok)
 
 vectorgeno = as.factor(geno)
@@ -59,5 +69,6 @@ vectorgeno = as.factor(geno)
 df=data.frame(rpcax=rpca$x,vectorgeno=vectorgeno)
 p=ggplot(data = df, aes(rpcax.PC1,rpcax.PC2, colour=vectorgeno)) + geom_point()
 plot(p)
+
 
 

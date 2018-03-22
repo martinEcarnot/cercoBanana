@@ -6,7 +6,7 @@ library(plyr)
 library(caret)
 library(ggplot2)
 library(lattice)
-# rm(list = ls())
+rm(list = ls())
 
 source('D:\\Intern 2018\\cercoBanana\\R\\adj_asd.R')
 source('D:\\Intern 2018\\cercoBanana\\R\\SIGNE_load.R')
@@ -124,7 +124,7 @@ c=length(levels(class))
 
 
 # initialisation vecteur de % de bons classments par DV
-perok=vector(mode='numeric',length=ncmax)
+# perok=vector(mode='numeric',length=ncmax)
 # creation matrice de % de mauvais classements par clone
 mc=matrix(nrow = ncmax,ncol = c)
 
