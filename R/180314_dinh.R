@@ -13,9 +13,8 @@ source('D:\\Intern 2018\\cercoBanana\\R\\SIGNE_maha0.R')
 
 id=read.table("D:\\Intern 2018\\Dinh\\Classeur fs5.csv",sep=",",header =TRUE)
 
-d="D:\\Intern 2018\\Dinh\\biov tous asd\\biov1 fs5 asd\\fs5 asd 2017 07 18"
+d="D:\\Intern 2018\\Dinh\\biov tous asd\\biov1 fs5 asd\\fs5 asd 2017 06 09 rge"
 res0=SIGNE_load(d)
-
 ## Pretraitements
 # # Ajustement des sauts de detecteurs (Montpellier: sauts ?? 1000 (651??me l.o.) et 1800 (1451))
 res=adj_asd(res0,c(651,1451))
@@ -28,7 +27,7 @@ nboit=rownames(res)
 idtot=vector()
 
 for (i in 1:nrow(res))
-  {
+{
   b=substr(nboit[i],1,nchar(nboit[i])-5)
   ib=which(b==id$Pastille.boite)
 
@@ -63,9 +62,19 @@ res=t(apply(res,1,sgolayfilt,p=p,n=n,m=m))
 k=6
 
 # creation de la matrice de classes
-iso= substr(idtotok, 23, 24)
-vectoriso = as.factor(iso)
-class=vectoriso
+geno= substr(idtotok, 17, 19)
+vectorgeno = as.factor(geno)
+#clasification varieties
+vectorgeno[which(vectorgeno=="T3.")] = "T2."
+vectorgeno[which(vectorgeno=="T4.")] = "T2."
+vectorgeno[which(vectorgeno=="T5.")] = "T2."
+# vectorgeno[which(vectorgeno=="T6.")] = "T2."
+vectorgeno[which(vectorgeno=="T7.")] = "T2."
+vectorgeno[which(vectorgeno=="T8.")] = "T2."
+
+class=vectorgeno
+
+
 # variable qui mesure le nombre de classes
 c=length(levels(class))
 
@@ -77,7 +86,7 @@ perok=vector(mode='numeric',length=ncmax)
 perok_finalm0=matrix(nrow = repet, ncol = ncmax)
 
 for(j in 1:repet)
-  {
+{
   # creation des jeux d'apprentissage et validation
   flds <- createFolds(1:ns, k = k)
   predm0=as.data.frame(matrix(nrow = ns, ncol = ncmax))
@@ -103,16 +112,13 @@ for(j in 1:repet)
   }
   # Table de contingence
   tsm0=lapply(as.list(predm0), class, FUN = table)
-
   # Sumpred=lapply(ts, FUN = rowSums)
   diagsm0=lapply(tsm0, FUN = diag)
 
   # Poucentage de bien classes
   perokm0=100*unlist(lapply(diagsm0, FUN = sum))/length(class)
-
   maxi=max(perokm0)
   maxi.id=which.max(perokm0)
-
   ## Enregistrement des matrices de resultat final
   # remplissage de la matrice des perok finale
 
@@ -120,6 +126,6 @@ for(j in 1:repet)
 }
 
 # # Tracage de l'evolution des perok en fct du nb de DV utilisees
-plot(colMeans(perok_finalm0))
+plot(colMeans(perok_finalm0),  ylim=range(0:100), pch=16)
 
 
