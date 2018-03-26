@@ -15,6 +15,7 @@ id=read.table("D:\\Intern 2018\\Dinh\\Classeur fs5.csv",sep=",",header =TRUE)
 
 d="D:\\Intern 2018\\Dinh\\biov tous asd\\biov1 fs5 asd\\fs5 asd 2017 06 09 rge"
 res0=SIGNE_load(d)
+
 ## Pretraitements
 # # Ajustement des sauts de detecteurs (Montpellier: sauts ?? 1000 (651??me l.o.) et 1800 (1451))
 res=adj_asd(res0,c(651,1451))
@@ -63,16 +64,28 @@ k=6
 
 # creation de la matrice de classes
 geno= substr(idtotok, 17, 19)
-vectorgeno = as.factor(geno)
-#clasification varieties
-vectorgeno[which(vectorgeno=="T3.")] = "T2."
-vectorgeno[which(vectorgeno=="T4.")] = "T2."
-vectorgeno[which(vectorgeno=="T5.")] = "T2."
-# vectorgeno[which(vectorgeno=="T6.")] = "T2."
-vectorgeno[which(vectorgeno=="T7.")] = "T2."
-vectorgeno[which(vectorgeno=="T8.")] = "T2."
+# vectorgeno = as.factor(geno)
+# #clasification varieties
+# vectorgeno[which(vectorgeno=="T3.")] = "T2."
+# vectorgeno[which(vectorgeno=="T4.")] = "T2."
+# vectorgeno[which(vectorgeno=="T5.")] = "T2."
+# # vectorgeno[which(vectorgeno=="T6.")] = "T2."
+# vectorgeno[which(vectorgeno=="T7.")] = "T2."
+# vectorgeno[which(vectorgeno=="T8.")] = "T2."
+
+
+
+#combine levels geno
+geno = as.character(geno)
+geno[geno %in% c("T2.", "T3.", "T4.", "T5.", "T7.", "T8.")]="AA"
+geno[geno %in% c("T6.")] = "AB"
+geno[geno %in% c("T9.")] = "AAA"
+
+vectorgeno = factor(geno)
+
 
 class=vectorgeno
+
 
 
 # variable qui mesure le nombre de classes
@@ -86,7 +99,8 @@ perok=vector(mode='numeric',length=ncmax)
 perok_finalm0=matrix(nrow = repet, ncol = ncmax)
 
 for(j in 1:repet)
-{
+
+  {
   # creation des jeux d'apprentissage et validation
   flds <- createFolds(1:ns, k = k)
   predm0=as.data.frame(matrix(nrow = ns, ncol = ncmax))
