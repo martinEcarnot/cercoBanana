@@ -1,0 +1,119 @@
+library(ggplot2)
+library(signal)
+
+source('D:\\Intern 2018\\cercoBanana\\R\\SIGNE_load.R')
+source('D:\\Intern 2018\\cercoBanana\\R\\adj_asd.R')
+
+id=read.table("D:\\Intern 2018\\Dinh\\Classeur fs5.csv",sep=",",header =TRUE)
+
+d="D:\\Intern 2018\\Dinh\\biov tous asd\\biov1 fs5 asd\\fs5 asd 2017 07 06 tt"
+res0=SIGNE_load(d)
+res=res0
+# # # Ajustement des sauts de detecteurs (Montpellier: sauts ?? 1000 (651??me l.o.) et 1800 (1451))
+# res=adj_asd(res0,c(651,1451))
+# # # Reduction des variables (extremites bruitees)
+# res=res[,seq(100,2100,1)]
+# # Normalisation SNV
+# res=t(scale(t(res)))
+# # # Derivation Savitsky Golay
+# #Parametres du Savitsky-Golay (p=degr? du polynome, n= taille de la fen?tre, m=ordre de d?rivation)
+# p=2
+# n=11
+# m=2
+# res=t(apply(res,1,sgolayfilt,p=p,n=n,m=m))
+
+
+nboit=rownames(res)
+idtot=vector()
+# fi=file.info(Sys.glob(file.path(d, "*.asd")))
+
+
+for (i in 1:nrow(res))  {
+  b=substr(nboit[i],1,nchar(nboit[i])-5)
+  ib=which(b==id$Pastille.boite)
+
+
+  id1=sprintf("%s_%9s_%s",substr(basename(d),9,18),id$Variete[ib],id$Boite.ds.var[ib])#,substr(fi$mtime[i],9,10))
+  if (length(id1)==0) {id1=nboit[i]}
+  idtot=rbind(idtot,id1)
+}
+
+
+
+#
+# iok1 = which(substr(idtot,22,24) == "0.1"|(substr(idtot,22,24) == "0.2"))
+# resok1=res[iok1,]
+# idtot1=idtot[iok1]
+#
+#
+#
+# iok = which(substr(idtot1,17,19) == "T2."|substr(idtot1,17,19) == "T3."|substr(idtot1,17,19) == "T4."|substr(idtot1,17,19) == "T5."|substr(idtot1,17,19) == "T6."|substr(idtot1,17,19) == "T7."|substr(idtot1,17,19) == "T8."|substr(idtot1,17,19) == "T9.")
+#
+
+resok=res#[iok,]
+idtotok=idtot#1[iok]
+
+
+
+geno=substr(idtotok,17,19)
+# rpca=prcomp(resok)
+
+#iout=[]
+#if (substr(basename(d),9,18)=="2017 06 21") {iout=which(rpca$x > 0.05)}
+#if (substr(basename(d),9,18)=="2017 07 06") {iout=which(rpca$x > 0.2)}
+# if (substr(basename(d),9,18)=="2017 07 18") {iout=which(rpca$x < -0.02)}
+#
+# resok=resok[-iout,]
+# geno=geno[-iout]
+# idtotok=idtotok[-iout]
+
+# #To do the average of the 3 spectra
+resok=aggregate(resok,list(idtotok),mean)
+idtotok=resok$Group.1
+resok=as.matrix(resok[,2:ncol(resok)])
+
+# geno=substr(idtotok,17,19)
+# # iso=substr(idtotok,22,24)
+
+#combine levels geno
+geno = as.character(geno)
+geno[geno %in% c("T2.")]="T2- lilin"
+geno[geno %in% c("T3.")]= "T3- madu"
+geno[geno %in% c("T4.")] = "T4- berlin"
+geno[geno %in% c("T5.")] = "T5- KNO"
+geno[geno %in% c("T6.")] = "T6- PKW"
+geno[geno %in% c("T7.")] = "T7- Cal4"
+geno[geno %in% c("T8.")] = "T8- pipit"
+geno[geno %in% c("T9.")] = "T9 - 902"
+
+
+
+# geno[geno %in% c("T2.", "T3.", "T4.", "T5.", "T7.", "T8.")]="AA"
+# geno[geno %in% c("T6.")] = "BB"
+# geno[geno %in% c("T9.")] = "AAA"
+
+
+# geno[geno %in% c("T2.", "T6.", "T7.")]="TR"
+# geno[geno %in% c("T3.", "T4.", "T8.")]="PR"
+# geno[geno %in% c("T5.", "T9.")]="S"
+vectorgeno = as.factor(geno)
+
+
+# vectorgeno[which(vectoreno=="T5.")]=".6"
+# vectoriso[which(vectoriso==".6")]=".5"
+# rpca=prcomp(resok)
+#
+# cdate=substr(idtotok,26,27)
+# df=data.frame(rpcax=rpca$x,vectorgeno=vectorgeno)
+#
+# p=ggplot(data = df, aes(rpcax.PC1,rpcax.PC2, colour=vectorgeno)) + geom_point(size = 3) +geom_text(aes(label=cdate),hjust=0, vjust=0)
+# plot(p)
+#
+#
+
+# stop()
+rownames(resok)=idtotok
+write.table(resok, file=paste(trimws(basename(d)),"_pre.csv"), sep=";", dec = ".",row.names = TRUE)
+write.table(as.numeric(vectorgeno), file=paste(trimws(basename(d)),"_class.csv"), sep=";", dec = ".",row.names = idtotok)
+
+
