@@ -6,7 +6,7 @@
 #' @author Martin Ecarnot
 #' @export
 #'
-source('D:\\Intern 2018\\cercoBanana\\R\\asd_read.R')
+source('/home/ecarnot/Documents/INRA/R/cercoBanana/R/asd_read.R')
 
 
 SIGNE_load <- function (d) {
@@ -18,10 +18,10 @@ l=sort(l)
 sp=matrix(nrow=length(l),ncol=2151)
 
 for (i in 1:length(l)) {
-  print(i)
-  sp1=get_spectra(l[i], type = "reflectance") # Fonction pour lire les fichiers .asd
-  # sp1=asd_read(l[i])
-  # sp1=sp1$spectrum/sp1$reference
+  # print(i)
+  # sp1=get_spectra(l[i], type = "reflectance") # Fonction pour lire les fichiers .asd
+  sp1=asd_read(l[i])
+  sp1=sp1$spectrum/sp1$reference
   sp[i,]=sp1
 }
 
