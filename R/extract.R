@@ -37,9 +37,9 @@ for (i in 1:nrow(res))  {
   idtot=rbind(idtot,id1)
 }
 
-iok = which(substr(idtot1,17,19) == "T2."|substr(idtot1,17,19) == "T3."|substr(idtot1,17,19) == "T4."|substr(idtot1,17,19) == "T5."|substr(idtot1,17,19) == "T6."|substr(idtot1,17,19) == "T7."|substr(idtot1,17,19) == "T8."|substr(idtot1,17,19) == "T9.")
+iok = which(substr(idtot,17,19) == "T2."|substr(idtot,17,19) == "T3."|substr(idtot,17,19) == "T4."|substr(idtot,17,19) == "T5."|substr(idtot,17,19) == "T6."|substr(idtot,17,19) == "T7."|substr(idtot,17,19) == "T8."|substr(idtot,17,19) == "T9.")
 
-resok=res[iok]
+resok=res[iok,]
 idtotok=idtot[iok]
 
 #To do the average of the 3 spectra
