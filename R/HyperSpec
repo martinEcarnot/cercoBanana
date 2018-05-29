@@ -1,0 +1,68 @@
+library(ggplot2)
+library(signal)
+library(hyperSpec)
+
+source('D:\\Intern 2018\\cercoBanana\\R\\SIGNE_load.R')
+source('D:\\Intern 2018\\cercoBanana\\R\\adj_asd.R')
+
+id=read.table("D:\\Intern 2018\\Dinh\\Classeur fs5.csv",sep=",",header =TRUE)
+
+d="D:\\Intern 2018\\Dinh\\biov tous asd\\biov1 fs5 asd\\fs5 asd 2017 06 16 rge"
+res0=SIGNE_load(d)
+# # res=res0
+# # # Ajustement des sauts de detecteurs (Montpellier: sauts ?? 1000 (651??me l.o.) et 1800 (1451))
+res=adj_asd(res0,c(651,1451))
+# # # Reduction des variables (extremites bruitees)
+res=res[,seq(100,2100,1)]
+# # Normalisation SNV
+ res=t(scale(t(res)))
+# # # Derivation Savitsky Golay
+# #Parametres du Savitsky-Golay (p=degr? du polynome, n= taille de la fen?tre, m=ordre de d?rivation)
+# p=2
+# n=11
+# m=2
+# res=t(apply(res,1,sgolayfilt,p=p,n=n,m=m))
+
+
+nboit=rownames(res)
+idtot=vector()
+
+for (i in 1:nrow(res))  {
+  b=substr(nboit[i],1,nchar(nboit[i])-5)
+  ib=which(b==id$Pastille.boite)
+  
+  
+  id1=sprintf("%s_%9s_%s",substr(basename(d),9,18),id$Variete[ib],id$Boite.ds.var[ib])#,substr(fi$mtime[i],9,10))
+  if (length(id1)==0) {id1=nboit[i]}
+  idtot=rbind(idtot,id1)
+}
+
+
+
+resok=res#[iok]
+idtotok=idtot#[iok]
+
+#To do the average of the 3 spectra
+# resok=aggregate(resok,list(idtotok),mean)
+# idtotok=resok$Group.1
+# resok=as.matrix(resok[,2:ncol(resok)])
+
+
+# spc=new("hyperSpec",resok)
+# plotspc(spc)
+# spc1=new("hyperSpec",resok[10,])
+# plotspc(spc1,add=T,col="red")
+# plot(spc)
+
+spc=new("hyperSpec",resok)
+plot(spc)
+
+spc1=new("hyperSpec",resok[705,])
+plotspc(spc1,add=T,col="red")
+spc2=new("hyperSpec",resok[704,])
+plotspc(spc2,add=T,col="blue")
+spc3=new("hyperSpec",resok[703,])
+plotspc(spc3,add=T,col="green")
+spc4=new("hyperSpec",resok[702,])
+plot(spc4, add=T, col="yellow")
+
