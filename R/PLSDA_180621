@@ -1,0 +1,147 @@
+library(MASS)
+library(signal)
+library(plyr)
+library(caret)
+library(ggplot2)
+library(lattice)
+
+
+source('D:\\Intern 2018\\cercoBanana\\R\\adj_asd.R')
+source('D:\\Intern 2018\\cercoBanana\\R\\SIGNE_load.R')
+source('D:\\Intern 2018\\cercoBanana\\R\\SIGNE_maha.R')
+source('D:\\Intern 2018\\cercoBanana\\R\\SIGNE_maha0.R')
+
+id=read.table("D:\\Intern 2018\\Dinh\\Classeur fs5.csv",sep=",",header =TRUE)
+
+d="D:\\Intern 2018\\Dinh\\biov tous asd\\biov1 fs5 asd\\fs5 asd 2017 06 16 rge"
+res0=SIGNE_load(d)
+## Pretraitements
+# # Ajustement des sauts de detecteurs (Montpellier: sauts ?? 1000 (651??me l.o.) et 1800 (1451))
+res=adj_asd(res0,c(651,1451))
+# # Reduction des variables (extremites bruitees)
+res=res[,seq(100,2100,1)]
+# res=res[,seq(100,1150,1)]
+# res=res[,seq(100,750,1)]
+# Normalisation SNV
+res=t(scale(t(res)))
+
+nboit=rownames(res)
+idtot=vector()
+
+for (i in 1:nrow(res))
+
+  {
+  b=substr(nboit[i],1,nchar(nboit[i])-5)
+  ib=which(b==id$Pastille.boite)
+
+  id1=sprintf("%s_%9s_%s",substr(basename(d),9,18),id$Variete[ib],id$Boite.ds.var[ib])
+  idtot=rbind(idtot,id1)
+}
+#
+# iok1 = which(substr(idtot,22,24) == "0.1" |substr(idtot,22,24) == "0.2")
+#
+# resok1=res[iok1,]
+# idtotok1=idtot[iok1]
+
+iok = which(substr(idtot,17,19) == "T2." |substr(idtot,17,19) == "T3."|substr(idtot,17,19) == "T4."|substr(idtot,17,19) == "T5."|substr(idtot,17,19) == "T6."|substr(idtot,17,19) == "T7."|substr(idtot,17,19) == "T8.")#|substr(idtot,17,19) == "T9.")
+
+resok=res[iok,]
+idtotok=idtot[iok]
+
+
+sp=resok
+ns=nrow(sp)
+
+
+## Boucle pour effectuer plusieurs PLSDA (reduire impact tirage aleatoire)
+## FIXATION DES PARAMETRES UTILISES:
+repet=4
+# nombre de DV max autoisees
+ncmax=20
+# # Derivation Savitsky Golay
+#Parametres du Savitsky-Golay
+# p=2
+# n=11
+# m=1
+# res=t(apply(res,1,sgolayfilt,p=p,n=n,m=m))
+# Nombre de groupes de CV
+k=6
+
+
+
+# creation de la matrice de classes
+geno= substr(idtotok, 17, 19)
+
+geno[geno %in% c("T2.", "T3.", "T4.", "T5.", "T7.", "T8.")]="AA"
+geno[geno %in% c("T6.")] = "BB"
+
+
+# geno[geno %in% c("T2.", "T3.", "T4.", "T5.", "T6.","T7.", "T8.")]="diploid"
+# geno[geno %in% c("T9.")] = "triploid"
+
+vectorgeno = as.factor(geno)
+
+class=vectorgeno
+
+
+# variable qui mesure le nombre de classes
+c=length(levels(class))
+
+# initialisation vecteur de % de bons classments par DV
+perok=vector(mode='numeric',length=ncmax)
+
+## definition des matrices de resultat final
+# creation matrice des perok finale
+perok_finalm0=matrix(nrow = repet, ncol = ncmax)
+
+for(j in 1:repet)
+{
+  # creation des jeux d'apprentissage et validation
+  flds <- createFolds(1:ns, k = k)
+  predm0=as.data.frame(matrix(nrow = ns, ncol = ncmax))
+
+  # Boucle sur les groupes de CV
+  for (i in 1:k) {
+    id_val=sort(unlist(flds[i]))
+    sp_val=sp[id_val,]
+    class_val=class[id_val]
+    sp_cal=sp[-id_val,]
+    class_cal=class[-id_val]
+
+    # PLSDA and application to have loadings and scores
+    rplsda=caret::plsda(sp_cal, class_cal,ncomp=ncmax)
+    sc_cal=rplsda$scores
+    sp_val_c=scale(sp_val,center=rplsda$Xmeans,scale = F)
+    sc_val=sp_val_c%*%rplsda$projection  # score_val=predict(rplsda,sc_val,type="scores") : ne marche pas
+
+    for (ii in 2:ncmax) {
+      # Validation
+      predm0[id_val,ii]=SIGNE_maha0(sc_cal[,1:ii], class_cal, sc_val[,1:ii])$class
+    }
+  }
+  # Table de contingence
+  tsm0=lapply(as.list(predm0), class, FUN = table)
+  # Sumpred=lapply(ts, FUN = rowSums)
+  diagsm0=lapply(tsm0, FUN = diag)
+
+  # Poucentage de bien classes
+  perokm0=100*unlist(lapply(diagsm0, FUN = sum))/length(class)
+  maxi=max(perokm0)
+  maxi.id=which.max(perokm0)
+  ## Enregistrement des matrices de resultat final
+  # remplissage de la matrice des perok finale
+
+  perok_finalm0[j,]=perokm0
+}
+
+# # Tracage de l'evolution des perok en fct du nb de DV utilisees
+plot(colMeans(perok_finalm0),  ylim=range(0:100), pch=16)
+
+# Run the PLSDA on the whole set
+rplsdat=caret::plsda(sp, class,ncomp=6)
+
+#plot
+df=data.frame(rplsda=rplsdat$scores[,1:10],vectorgeno=vectorgeno)
+p=ggplot(data = df, aes(rplsda.Comp.1,rplsda.Comp.2, colour=vectorgeno))
++ geom_point()
+plot(p)
